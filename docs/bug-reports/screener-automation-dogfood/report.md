@@ -6,8 +6,8 @@ Branch: `bug-report/screener-automation-dogfood`
 
 Source context:
 
-- Parent repo: `/Users/e/.codex/worktrees/3475/vhs`
-- Skill submodule: `/Users/e/.codex/worktrees/3475/vhs/.claude/skills/research-monitor`
+- Parent repo: `<worktree-root>`
+- Skill submodule: `<worktree-root>/.claude/skills/research-monitor`
 - Parent dogfood issue file: `docs/competitive-research/supademo-20-tools/watch/research-monitor-dogfood-issues.md`
 - Parent watchlist: `docs/competitive-research/supademo-20-tools/watch/watchlist.json`
 - Parent Codex automation prompt: `docs/competitive-research/supademo-20-tools/watch/codex-automation-prompt.md`
@@ -30,8 +30,9 @@ For every failure or configuration challenge:
 3. Implement the smallest change that makes the test pass.
 4. Run the same Bun test and verify it passes.
 5. Run the full `bun test` suite.
-6. Refactor only after green.
-7. Preserve the red/green evidence in the final implementation notes.
+6. Run `bun run typecheck` and verify it passes.
+7. Refactor only after green.
+8. Preserve the red/green evidence in the final implementation notes.
 
 Do not merge or mark any issue fixed without a test that failed before the fix. Tests written after implementation do not count.
 
