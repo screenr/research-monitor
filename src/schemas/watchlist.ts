@@ -28,12 +28,15 @@ export interface Watchlist {
 
 export interface CompactContext {
   industry: Watchlist["industry"];
-  companies: Array<Pick<WatchCompany, "id" | "name" | "category" | "priority"> & {
+  companies: Array<Pick<WatchCompany, "id" | "name" | "status" | "category" | "priority"> & {
+    urls?: string[];
+    notes?: string;
     watch_for: string[];
   }>;
   discovery: {
     enabled: boolean;
     queries: string[];
+    candidate_threshold?: string;
   };
 }
 
@@ -80,13 +83,19 @@ export function toCompactContext(watchlist: Watchlist): CompactContext {
       .map((company) => ({
         id: company.id,
         name: company.name,
+        status: company.status,
         category: company.category,
         priority: company.priority,
+        ...(company.urls ? { urls: company.urls } : {}),
+        ...(company.notes ? { notes: company.notes } : {}),
         watch_for: company.watch_for ?? [],
       })),
     discovery: {
       enabled: watchlist.discovery?.enabled ?? true,
       queries: watchlist.discovery?.queries ?? [],
+      ...(watchlist.discovery?.candidate_threshold
+        ? { candidate_threshold: watchlist.discovery.candidate_threshold }
+        : {}),
     },
   };
 }

@@ -20,3 +20,10 @@ Company fields:
 - `notes`: optional human context
 
 Use repo journals for findings. Use local SQLite for noisy search logs and rejected candidates.
+
+Validate adjacent artifacts with:
+
+```bash
+research-monitor validate-journal --journal watch/journals/YYYY-MM-DD.md
+research-monitor validate-suggested-update --file watch/suggested-updates/example.json
+```
