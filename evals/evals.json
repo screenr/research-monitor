@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "evals": [
+    {
+      "id": "valid-watchlist-extracts-compact-context",
+      "description": "A valid industry watchlist should validate and produce compact context for an LLM without requiring the model to parse the full file.",
+      "prompt": "Use the research-monitor skill to validate files/watchlist-valid.json and produce compact context.",
+      "files": ["files/watchlist-valid.json"],
+      "expected": {
+        "must_include": ["Interactive demo automation", "Arcade", "AI demo generation"],
+        "must_not_include": ["schema_version"]
+      }
+    }
+  ]
+}

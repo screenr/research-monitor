@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "industry": {
+    "name": "Interactive demo automation"
+  },
+  "companies": [
+    {
+      "id": "arcade",
+      "name": "Arcade",
+      "status": "active",
+      "category": "self-serve recording",
+      "priority": "high",
+      "watch_for": ["AI demo generation"]
+    }
+  ]
+}

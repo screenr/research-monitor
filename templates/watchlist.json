@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "industry": {
+    "name": "Example industry",
+    "description": "Short description of the market being monitored"
+  },
+  "companies": [
+    {
+      "id": "exampleco",
+      "name": "ExampleCo",
+      "status": "active",
+      "category": "example category",
+      "priority": "high",
+      "urls": ["https://example.com"],
+      "watch_for": ["funding", "pricing changes", "new AI features"]
+    }
+  ],
+  "discovery": {
+    "enabled": true,
+    "queries": ["example industry startup funding"],
+    "candidate_threshold": "Mentioned in funding, launch, comparison, acquisition, or credible customer migration context"
+  }
+}
