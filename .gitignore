@@ -3,3 +3,4 @@ bin/research-monitor
 .research-monitor/
 evals/pending/
 *.log
+.*.bun-build
