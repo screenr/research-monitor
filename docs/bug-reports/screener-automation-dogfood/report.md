@@ -295,6 +295,95 @@ Required Bun test:
 - Verify the command is deterministic and suitable for snapshot-style assertions.
 - Watch tests fail before implementing the command.
 
+### RM-DOGFOOD-012: Eval tuples are not linked to structured run logs
+
+Observed:
+
+The failure-capture guidance asks agents to capture an eval tuple, and the workflow says noisy run logs should live in SQLite, but there is no deterministic link between a local eval tuple and the log rows that explain what happened.
+
+This would force future eval reviewers to rely on copied prose, screenshots, or unstructured context instead of replayable metadata from the actual monitor run.
+
+Expected:
+
+The local SQLite schema should support one eval tuple referencing many typed log rows. The eval tuple JSON should remain compact and high-signal, but it must be aware of the relevant SQLite logs through stable references.
+
+Recommended shape:
+
+```sql
+create table monitor_runs (
+  id text primary key,
+  watch_root text not null,
+  harness text,
+  model text,
+  started_at text not null,
+  completed_at text,
+  status text not null,
+  metadata_json text not null default '{}'
+);
+
+create table run_logs (
+  id text primary key,
+  run_id text not null references monitor_runs(id),
+  step text not null,
+  type text not null,
+  message text,
+  metadata_json text not null default '{}',
+  created_at text not null
+);
+
+create table eval_tuples (
+  id text primary key,
+  run_id text references monitor_runs(id),
+  research_ask text not null,
+  research_result text not null,
+  issue text not null,
+  correction text not null,
+  metadata_json text not null default '{}',
+  created_at text not null
+);
+
+create table eval_tuple_logs (
+  eval_tuple_id text not null references eval_tuples(id),
+  run_log_id text not null references run_logs(id),
+  primary key (eval_tuple_id, run_log_id)
+);
+```
+
+The exported eval tuple JSON should include either explicit log row IDs or a deterministic SQL query, for example:
+
+```json
+{
+  "id": "eval_2026_06_18_help_flag",
+  "research_ask": "...",
+  "research_result": "...",
+  "issue": "...",
+  "correction": "...",
+  "log_refs": {
+    "sqlite_db": ".research-monitor/research.sqlite",
+    "run_id": "run_2026_06_18_screener",
+    "log_ids": ["log_help_failure", "log_cli_stderr"],
+    "query": "select * from run_logs where run_id = ? and type in ('tool_call','stderr','error')"
+  }
+}
+```
+
+Log rows should include:
+
+- `step`, such as `validate`, `extract-context`, `plan-scan`, `external-search`, `journal-write`, `automation-spec`, `capture-failure`;
+- `type`, such as `tool_call`, `tool_result`, `stdout`, `stderr`, `error`, `search_query`, `source_candidate`, `source_rejected`, `llm_decision`, `artifact_write`, `harness_event`;
+- `metadata_json`, for structured fields that differ by step.
+
+Tags can start inside `metadata_json` as `tags: []` to avoid premature schema churn. If tag filtering becomes common, add a normalized `run_log_tags(run_log_id, tag)` table later.
+
+Required Bun test:
+
+- Add tests for `db init` creating `monitor_runs`, `run_logs`, `eval_tuples`, and `eval_tuple_logs`.
+- Add tests for appending multiple typed log rows to one run.
+- Add tests for creating an eval tuple linked to multiple log rows.
+- Add tests for exporting an eval tuple JSON that includes `log_refs` with either stable `log_ids` or a deterministic SQL query.
+- Verify noisy log content stays in SQLite and is not copied wholesale into repo journal files.
+- Watch these tests fail before implementing the SQLite schema and failure-capture commands.
+
 ## Regression Evidence To Preserve
 
 Use these as fixtures or comments in tests:
@@ -307,6 +396,7 @@ Use these as fixtures or comments in tests:
   - `model = "gpt-5.4"`
   - `reasoning_effort = "medium"`
   - `execution_environment = "worktree"`
+- Eval tuple `log_refs` should preserve the relationship between a compact eval case and many typed SQLite log rows.
 
 ## Suggested Implementation Order
 
@@ -315,6 +405,6 @@ Use these as fixtures or comments in tests:
 3. Codex automation spec generation and schedule normalization.
 4. Workspace `init`.
 5. Journal and suggested-update validators.
-6. SQLite/run-log command or explicit fallback.
+6. SQLite schema, run-log commands, and eval tuple log references.
 
 This order fixes the highest-friction automation setup failures first.
